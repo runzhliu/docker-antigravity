@@ -61,19 +61,11 @@ RUN find / -name "menu.xml" -path "*/openbox/*" 2>/dev/null \
         && sed -i '/label="Chrome"/i <item label="Antigravity" icon="\/usr\/share\/pixmaps\/antigravity.png"><action name="Execute"><command>wrapped-antigravity<\/command><\/action><\/item>' "$f"; \
     done; true
 
-# ── 7. 替换 Selkies 网页界面的 favicon 为 Antigravity 图标 ────────────
-# assets/favicon.ico 已在本地预先生成（64/32/16px 多尺寸 ICO），
-# 直接 COPY 到四个 Selkies 静态资源目录，mkdir -p 确保路径存在。
-COPY assets/favicon.ico /tmp/antigravity-favicon.ico
-RUN mkdir -p /usr/share/selkies/www \
-    && mkdir -p /usr/share/selkies/web \
-    && mkdir -p /usr/share/selkies/selkies-dashboard-wish \
-    && mkdir -p /usr/share/selkies/selkies-dashboard-zinc \
-    && cp /tmp/antigravity-favicon.ico /usr/share/selkies/www/favicon.ico \
-    && cp /tmp/antigravity-favicon.ico /usr/share/selkies/web/favicon.ico \
-    && cp /tmp/antigravity-favicon.ico /usr/share/selkies/selkies-dashboard-wish/favicon.ico \
-    && cp /tmp/antigravity-favicon.ico /usr/share/selkies/selkies-dashboard-zinc/favicon.ico \
-    && rm /tmp/antigravity-favicon.ico
+# ── 7. 替换 Selkies 网页界面图标与标题 ───────────────────────────────
+# icon.png 是 Selkies web UI 实际使用的图标文件（非 favicon.ico）。
+# TITLE 环境变量控制浏览器 tab 上显示的标题。
+COPY assets/antigravity.png /usr/share/selkies/www/icon.png
+ENV TITLE="Antigravity"
 
 # ── 8. 首次启动初始化脚本 ─────────────────────────────────────────────
 RUN mkdir -p /custom-cont-init.d \
