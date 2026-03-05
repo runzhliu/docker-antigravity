@@ -4,7 +4,7 @@
 [![Image Size](https://img.shields.io/docker/image-size/ghcr.io/runzhliu/docker-antigravity/latest?style=flat-square)](https://github.com/runzhliu/docker-antigravity/pkgs/container/docker-antigravity)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
-在 Docker 容器里运行 [Antigravity](https://antigravity.app)，通过浏览器访问图形界面，无需本地安装。
+在 Docker 容器里运行 [Antigravity](https://antigravity.app)，通过浏览器访问 Selkies 图形界面，无需本地安装。
 
 [English README](README.md)
 
@@ -42,8 +42,8 @@ services:
     volumes:
       - ./config:/config
     ports:
-      - 3000:3000   # noVNC 网页界面
-      - 3001:3001   # HTTPS noVNC
+      - 3000:3000   # Selkies 网页界面（HTTP）
+      - 3001:3001   # Selkies 网页界面（HTTPS，推荐）
     shm_size: "1gb"
     restart: unless-stopped
 ```
@@ -74,7 +74,7 @@ services:
 
 ## 工作原理
 
-1. 基于 [`linuxserver/chrome`](https://docs.linuxserver.io/images/docker-chrome)，该镜像通过 noVNC 提供轻量 Openbox 桌面。
+1. 基于 [`linuxserver/chrome`](https://docs.linuxserver.io/images/docker-chrome)，该镜像通过 [Selkies-GStreamer](https://github.com/selkies-project/selkies-gstreamer)（WebRTC）提供轻量 Openbox 桌面流。
 2. 从 Google Artifact Registry 官方 Debian 仓库安装 Antigravity。
 3. 用 wrapper 脚本替换 `google-chrome-stable`，确保始终携带 `--no-sandbox`（容器内必需）。
 4. 创建 `wrapped-antigravity` 启动器，负责清理残留锁文件并传入必要启动参数。

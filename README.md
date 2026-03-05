@@ -4,7 +4,7 @@
 [![Image Size](https://img.shields.io/docker/image-size/ghcr.io/runzhliu/docker-antigravity/latest?style=flat-square)](https://github.com/runzhliu/docker-antigravity/pkgs/container/docker-antigravity)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
-Run [Antigravity](https://antigravity.app) in a Docker container with a browser-accessible GUI — no local installation required.
+Run [Antigravity](https://antigravity.app) in a Docker container with a browser-accessible GUI via Selkies — no local installation required.
 
 [中文文档 README_ZH.md](README_ZH.md)
 
@@ -42,8 +42,8 @@ services:
     volumes:
       - ./config:/config
     ports:
-      - 3000:3000   # noVNC web UI
-      - 3001:3001   # HTTPS noVNC
+      - 3000:3000   # Selkies web UI (HTTP)
+      - 3001:3001   # Selkies web UI (HTTPS, recommended)
     shm_size: "1gb"
     restart: unless-stopped
 ```
@@ -74,7 +74,7 @@ Full list of inherited variables: [linuxserver/chrome docs](https://docs.linuxse
 
 ## How it Works
 
-1. Builds on [`linuxserver/chrome`](https://docs.linuxserver.io/images/docker-chrome), which provides a lightweight Openbox desktop via noVNC.
+1. Builds on [`linuxserver/chrome`](https://docs.linuxserver.io/images/docker-chrome), which provides a lightweight Openbox desktop streamed via [Selkies-GStreamer](https://github.com/selkies-project/selkies-gstreamer) (WebRTC).
 2. Installs Antigravity from Google Artifact Registry's official Debian repository.
 3. Wraps `google-chrome-stable` to always pass `--no-sandbox` (required inside Docker).
 4. Creates `wrapped-antigravity` — a launcher that cleans up stale lock files and passes required flags.
