@@ -12,12 +12,16 @@ Run [Antigravity](https://antigravity.app) in a Docker container with a browser-
 
 ## Quick Start
 
+> **Security notice:** Always set `CUSTOM_USER` and `PASSWORD` when exposing the container to any network. Without them, the web UI is accessible to anyone who can reach the port.
+
 ```bash
 docker run -d \
   --name=antigravity \
   -e PUID=1000 \
   -e PGID=1000 \
   -e TZ=UTC \
+  -e CUSTOM_USER=your-username \
+  -e PASSWORD=your-password \
   -p 3000:3000 \
   -p 3001:3001 \
   -v ./config:/config \
@@ -39,6 +43,8 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=UTC
+      - CUSTOM_USER=your-username   # required for public deployments
+      - PASSWORD=your-password      # required for public deployments
     volumes:
       - ./config:/config
     ports:

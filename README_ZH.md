@@ -12,12 +12,16 @@
 
 ## 快速开始
 
+> **安全提示：** 将容器暴露到任何网络时，务必设置 `CUSTOM_USER` 和 `PASSWORD`。不设置的情况下，任何能访问该端口的人都可以直接打开界面。
+
 ```bash
 docker run -d \
   --name=antigravity \
   -e PUID=1000 \
   -e PGID=1000 \
   -e TZ=Asia/Shanghai \
+  -e CUSTOM_USER=your-username \
+  -e PASSWORD=your-password \
   -p 3000:3000 \
   -p 3001:3001 \
   -v ./config:/config \
@@ -39,6 +43,8 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Asia/Shanghai
+      - CUSTOM_USER=your-username   # 公网部署必填
+      - PASSWORD=your-password      # 公网部署必填
     volumes:
       - ./config:/config
     ports:

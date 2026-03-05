@@ -61,7 +61,27 @@ RUN find / -name "menu.xml" -path "*/openbox/*" 2>/dev/null \
         && sed -i '/label="Chrome"/i <item label="Antigravity" icon="\/usr\/share\/pixmaps\/antigravity.png"><action name="Execute"><command>wrapped-antigravity<\/command><\/action><\/item>' "$f"; \
     done; true
 
-# ── 7. 首次启动初始化脚本 ─────────────────────────────────────────────
+# ── 7. 替换 Selkies 网页界面的 favicon 为 Antigravity 图标 ────────────
+# Antigravity 安装后图标位于 /usr/share/pixmaps/antigravity.png，
+# 将其复制到 Selkies web UI 的静态资源目录，覆盖默认的 Chrome favicon。
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends imagemagick \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && find /usr -type f \( -name "favicon.ico" -o -name "favicon.png" \) 2>/dev/null \
+        | while read -r f; do \
+            dir=$(dirname "$f"); \
+            ext="${f##*.}"; \
+            if [ "$ext" = "ico" ]; then \
+                convert /usr/share/pixmaps/antigravity.png \
+                    -define icon:auto-resize=64,48,32,16 "$f" 2>/dev/null || \
+                cp /usr/share/pixmaps/antigravity.png "$f"; \
+            else \
+                cp /usr/share/pixmaps/antigravity.png "$f"; \
+            fi; \
+        done; true
+
+# ── 8. 首次启动初始化脚本 ─────────────────────────────────────────────
 RUN mkdir -p /custom-cont-init.d \
     && cat > /custom-cont-init.d/10-antigravity-setup.sh << 'EOF'
 #!/bin/bash
