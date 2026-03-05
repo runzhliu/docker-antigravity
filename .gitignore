@@ -1,0 +1,10 @@
+# Local dev / runtime data
+config/
+.env
+*.log
+
+# macOS
+.DS_Store
+
+# Docker
+*.tar
