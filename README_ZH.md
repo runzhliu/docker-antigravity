@@ -12,7 +12,7 @@
 
 ## 演示
 
-<video src="docker-antigravity.mp4" controls width="100%"></video>
+<video src="https://raw.githubusercontent.com/runzhliu/docker-antigravity/main/docker-antigravity.mp4" controls width="100%"></video>
 
 ---
 
