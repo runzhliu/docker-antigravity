@@ -62,24 +62,21 @@ RUN find / -name "menu.xml" -path "*/openbox/*" 2>/dev/null \
     done; true
 
 # ── 7. 替换 Selkies 网页界面的 favicon 为 Antigravity 图标 ────────────
-# Antigravity 安装后图标位于 /usr/share/pixmaps/antigravity.png，
-# 将其复制到 Selkies web UI 的静态资源目录，覆盖默认的 Chrome favicon。
+# 将仓库内的 assets/antigravity.png 转换为 .ico 后，覆盖四个 Selkies
+# 静态资源目录里的 favicon.ico（路径由容器内 find 确认）。
+COPY assets/antigravity.png /tmp/antigravity.png
 RUN apt-get update \
     && apt-get install -y --no-install-recommends imagemagick \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && find /usr -type f \( -name "favicon.ico" -o -name "favicon.png" \) 2>/dev/null \
-        | while read -r f; do \
-            dir=$(dirname "$f"); \
-            ext="${f##*.}"; \
-            if [ "$ext" = "ico" ]; then \
-                convert /usr/share/pixmaps/antigravity.png \
-                    -define icon:auto-resize=64,48,32,16 "$f" 2>/dev/null || \
-                cp /usr/share/pixmaps/antigravity.png "$f"; \
-            else \
-                cp /usr/share/pixmaps/antigravity.png "$f"; \
-            fi; \
-        done; true
+    && convert /tmp/antigravity.png \
+        -define icon:auto-resize=64,48,32,16 \
+        /tmp/antigravity.ico \
+    && cp /tmp/antigravity.ico /usr/share/selkies/www/favicon.ico \
+    && cp /tmp/antigravity.ico /usr/share/selkies/web/favicon.ico \
+    && cp /tmp/antigravity.ico /usr/share/selkies/selkies-dashboard-wish/favicon.ico \
+    && cp /tmp/antigravity.ico /usr/share/selkies/selkies-dashboard-zinc/favicon.ico \
+    && rm /tmp/antigravity.png /tmp/antigravity.ico
 
 # ── 8. 首次启动初始化脚本 ─────────────────────────────────────────────
 RUN mkdir -p /custom-cont-init.d \
