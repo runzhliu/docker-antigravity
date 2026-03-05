@@ -12,7 +12,7 @@ Run [Antigravity](https://antigravity.app) in a Docker container with a browser-
 
 ## Demo
 
-<video src="https://raw.githubusercontent.com/runzhliu/docker-antigravity/main/docker-antigravity.mp4" controls width="100%"></video>
+<video src="https://github.com/user-attachments/assets/d3404f64-27bf-46c0-8c71-a5b675f441e9" controls width="100%"></video>
 
 ---
 
