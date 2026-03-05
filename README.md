@@ -10,6 +10,12 @@ Run [Antigravity](https://antigravity.app) in a Docker container with a browser-
 
 ---
 
+## Demo
+
+<video src="docker-antigravity.mp4" controls width="100%"></video>
+
+---
+
 ## Quick Start
 
 > **Security notice:** Always set `CUSTOM_USER` and `PASSWORD` when exposing the container to any network. Without them, the web UI is accessible to anyone who can reach the port.

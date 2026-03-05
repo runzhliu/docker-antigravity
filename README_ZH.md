@@ -10,6 +10,12 @@
 
 ---
 
+## 演示
+
+<video src="docker-antigravity.mp4" controls width="100%"></video>
+
+---
+
 ## 快速开始
 
 > **安全提示：** 将容器暴露到任何网络时，务必设置 `CUSTOM_USER` 和 `PASSWORD`。不设置的情况下，任何能访问该端口的人都可以直接打开界面。
