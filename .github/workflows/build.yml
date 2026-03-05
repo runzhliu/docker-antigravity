@@ -57,3 +57,19 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
+
+      # GITHUB_TOKEN cannot change package visibility — a fine-grained PAT
+      # (or classic PAT with write:packages scope) is required.
+      # Store it as a repository secret named GH_PAT.
+      # The secret value is encrypted by GitHub and automatically masked
+      # in all log output — it will never appear as plain text.
+      - name: Make container package public
+        if: github.event_name != 'pull_request'
+        env:
+          # gh CLI picks up GH_TOKEN automatically; GitHub masks its value in logs
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          gh api --method PATCH \
+            /user/packages/container/${{ github.event.repository.name }} \
+            --field visibility=public
+        continue-on-error: true
