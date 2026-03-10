@@ -36,7 +36,7 @@ docker run -d \
   ghcr.io/runzhliu/docker-antigravity:latest
 ```
 
-Open **http://localhost:3000** in your browser.
+Open **https://localhost:3001** in your browser.
 
 ### Docker Compose
 
