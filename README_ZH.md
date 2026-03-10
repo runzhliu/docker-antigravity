@@ -1,10 +1,10 @@
 # docker-antigravity
 
-[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/runzhliu/docker-antigravity/build.yml?style=flat-square)](https://github.com/runzhliu/docker-antigravity/actions)
-[![Image Size](https://img.shields.io/docker/image-size/ghcr.io/runzhliu/docker-antigravity/latest?style=flat-square)](https://github.com/runzhliu/docker-antigravity/pkgs/container/docker-antigravity)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
 在 Docker 容器里运行 [Antigravity](https://antigravity.app)，通过浏览器访问 Selkies 图形界面，无需本地安装。
+
+**注意：** 本项目未在任何镜像仓库发布预构建镜像。使用前请先在本地进行构建。
 
 [English README](README.md)
 
@@ -16,9 +16,17 @@
 
 ---
 
-## 快速开始
+## 本地构建
 
-> **安全提示：** 将容器暴露到任何网络时，务必设置 `CUSTOM_USER` 和 `PASSWORD`。不设置的情况下，任何能访问该端口的人都可以直接打开界面。
+```bash
+git clone https://github.com/runzhliu/docker-antigravity.git
+cd docker-antigravity
+docker build -t docker-antigravity:latest .
+```
+
+---
+
+## 快速开始
 
 ```bash
 docker run -d \
@@ -33,7 +41,7 @@ docker run -d \
   -v ./config:/config \
   --shm-size="1gb" \
   --restart unless-stopped \
-  ghcr.io/runzhliu/docker-antigravity:latest
+  docker-antigravity:latest
 ```
 
 在浏览器打开 **http://localhost:3000** 即可。
@@ -43,7 +51,7 @@ docker run -d \
 ```yaml
 services:
   antigravity:
-    image: ghcr.io/runzhliu/docker-antigravity:latest
+    image: docker-antigravity:latest
     container_name: antigravity
     environment:
       - PUID=1000
@@ -108,6 +116,12 @@ docker build -t docker-antigravity .
 ## 贡献
 
 欢迎提交 PR 和 Issue。大型改动请先开 Issue 讨论。
+
+---
+
+## 免责声明
+
+本镜像/脚本仅供个人学术研究使用。用户需自行遵守 Google 的相关服务条款。
 
 ---
 

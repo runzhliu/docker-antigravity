@@ -1,10 +1,10 @@
 # docker-antigravity
 
-[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/runzhliu/docker-antigravity/build.yml?style=flat-square)](https://github.com/runzhliu/docker-antigravity/actions)
-[![Image Size](https://img.shields.io/docker/image-size/ghcr.io/runzhliu/docker-antigravity/latest?style=flat-square)](https://github.com/runzhliu/docker-antigravity/pkgs/container/docker-antigravity)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
 Run [Antigravity](https://antigravity.app) in a Docker container with a browser-accessible GUI via Selkies — no local installation required.
+
+**Note:** This project is not published as a pre-built image on any registry. You must build it locally before running.
 
 [中文文档 README_ZH.md](README_ZH.md)
 
@@ -16,9 +16,17 @@ Run [Antigravity](https://antigravity.app) in a Docker container with a browser-
 
 ---
 
-## Quick Start
+## Building Locally
 
-> **Security notice:** Always set `CUSTOM_USER` and `PASSWORD` when exposing the container to any network. Without them, the web UI is accessible to anyone who can reach the port.
+```bash
+git clone https://github.com/runzhliu/docker-antigravity.git
+cd docker-antigravity
+docker build -t docker-antigravity:latest .
+```
+
+---
+
+## Quick Start
 
 ```bash
 docker run -d \
@@ -33,7 +41,7 @@ docker run -d \
   -v ./config:/config \
   --shm-size="1gb" \
   --restart unless-stopped \
-  ghcr.io/runzhliu/docker-antigravity:latest
+  docker-antigravity:latest
 ```
 
 Open **https://localhost:3001** in your browser.
@@ -43,7 +51,7 @@ Open **https://localhost:3001** in your browser.
 ```yaml
 services:
   antigravity:
-    image: ghcr.io/runzhliu/docker-antigravity:latest
+    image: docker-antigravity:latest
     container_name: antigravity
     environment:
       - PUID=1000
@@ -108,6 +116,12 @@ docker build -t docker-antigravity .
 ## Contributing
 
 PRs and issues are welcome. Please open an issue before submitting a large change.
+
+---
+
+## Disclaimer
+
+This image/script is for personal academic research purposes only. Users are responsible for complying with Google's Terms of Service.
 
 ---
 
