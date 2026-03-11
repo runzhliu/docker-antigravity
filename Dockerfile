@@ -1,4 +1,5 @@
-FROM linuxserver/chrome:latest
+# syntax=docker/dockerfile:1
+FROM --platform=linux/amd64 linuxserver/chrome:latest
 
 # ── 1. 安装 Antigravity ────────────────────────────────────────────────
 # Google Artifact Registry 的公共签名密钥（与 packages.cloud.google.com 共用）
