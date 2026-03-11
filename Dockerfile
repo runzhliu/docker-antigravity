@@ -68,7 +68,92 @@ RUN find / -name "menu.xml" -path "*/openbox/*" 2>/dev/null \
 COPY assets/antigravity.png /usr/share/selkies/www/icon.png
 ENV TITLE="Antigravity"
 
-# ── 8. 首次启动初始化脚本 ─────────────────────────────────────────────
+# ── 8. 安装 certbot（Let's Encrypt 证书支持）─────────────────────────────
+# certbot 申请证书后写入 /config/keys/，Selkies 原生 HTTPS（3001）直接使用。
+# 宿主机只需 -p 443:3001 即可对外提供标准 HTTPS，无需额外反代层。
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        certbot \
+        cron \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── 9. Let's Encrypt 自动申请/续期启动脚本 ───────────────────────────────
+# 脚本序号 05- 确保在 Selkies 启动之前运行，写好证书后 Selkies 直接读取。
+# 若未设置 DOMAIN / LETSENCRYPT_EMAIL，则完全跳过，不影响默认自签证书（3001）。
+RUN mkdir -p /custom-cont-init.d \
+    && cat > /custom-cont-init.d/05-letsencrypt.sh << 'EOF'
+#!/bin/bash
+set -euo pipefail
+
+DOMAIN="${DOMAIN:-}"
+EMAIL="${LETSENCRYPT_EMAIL:-}"
+SSL_DIR="/config/ssl"     # nginx ssl_certificate / ssl_certificate_key 所在目录
+CRON_FILE="/etc/cron.d/letsencrypt-renew"
+
+# ── 跳过条件 ────────────────────────────────────────────────────────────
+if [ -z "$DOMAIN" ] || [ -z "$EMAIL" ]; then
+    echo "[letsencrypt] DOMAIN 或 LETSENCRYPT_EMAIL 未设置，跳过自动证书配置"
+    echo "[letsencrypt] 继续使用自签证书（端口 3001）"
+    exit 0
+fi
+
+echo "[letsencrypt] 为域名 $DOMAIN 配置 Let's Encrypt 证书..."
+mkdir -p "$SSL_DIR"
+
+# ── 判断是否需要申请/续期 ────────────────────────────────────────────────
+LIVE_CERT="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
+NEEDS_CERT=true
+
+if [ -f "$LIVE_CERT" ]; then
+    EXPIRY=$(openssl x509 -enddate -noout -in "$LIVE_CERT" | cut -d= -f2)
+    EXPIRY_EPOCH=$(date -d "$EXPIRY" +%s 2>/dev/null || echo 0)
+    NOW_EPOCH=$(date +%s)
+    DAYS_LEFT=$(( (EXPIRY_EPOCH - NOW_EPOCH) / 86400 ))
+    echo "[letsencrypt] 现有证书还有 ${DAYS_LEFT} 天到期"
+    [ "$DAYS_LEFT" -gt 30 ] && NEEDS_CERT=false
+fi
+
+if $NEEDS_CERT; then
+    echo "[letsencrypt] 通过 certbot standalone 申请证书（需要端口 80 对外可达）..."
+    if ! certbot certonly \
+            --standalone \
+            --non-interactive \
+            --agree-tos \
+            --email "$EMAIL" \
+            -d "$DOMAIN" \
+            --http-01-port 80; then
+        echo "[letsencrypt] 证书申请失败，降级使用自签证书（端口 3001）"
+        exit 0
+    fi
+fi
+
+# ── 将证书写入 nginx SSL 路径（/config 是持久化卷，重启后仍有效）────────────
+# nginx 配置：ssl_certificate /config/ssl/cert.pem
+#             ssl_certificate_key /config/ssl/cert.key
+cp -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" "$SSL_DIR/cert.pem"
+cp -f "/etc/letsencrypt/live/$DOMAIN/privkey.pem"   "$SSL_DIR/cert.key"
+chown abc:abc "$SSL_DIR/cert.pem" "$SSL_DIR/cert.key"
+chmod 644 "$SSL_DIR/cert.pem"
+chmod 600 "$SSL_DIR/cert.key"
+echo "[letsencrypt] 证书已写入 $SSL_DIR（cert.pem + cert.key），nginx 启动后即生效"
+
+# ── 配置 cron 自动续期（每周一凌晨 3 点）────────────────────────────────
+cat > "$CRON_FILE" << CRON_EOF
+# Let's Encrypt 自动续期（docker-antigravity 生成）
+0 3 * * 1 root certbot renew --standalone --quiet \
+    && cp -f /etc/letsencrypt/live/${DOMAIN}/fullchain.pem ${SSL_DIR}/cert.pem \
+    && cp -f /etc/letsencrypt/live/${DOMAIN}/privkey.pem   ${SSL_DIR}/cert.key \
+    && nginx -s reload
+CRON_EOF
+chmod 644 "$CRON_FILE"
+
+cron
+echo "[letsencrypt] 自动续期 cron 已配置（每周一 03:00）"
+EOF
+RUN chmod +x /custom-cont-init.d/05-letsencrypt.sh
+
+# ── 10. 首次启动初始化脚本 ────────────────────────────────────────────────
 RUN mkdir -p /custom-cont-init.d \
     && cat > /custom-cont-init.d/10-antigravity-setup.sh << 'EOF'
 #!/bin/bash

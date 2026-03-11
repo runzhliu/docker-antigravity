@@ -48,6 +48,8 @@ docker run -d \
 
 Open **https://localhost:3001** in your browser.
 
+> **Self-signed certificate warning:** Port 3001 uses HTTPS with a self-signed certificate issued by Linuxserver.io. Your browser will show a security warning on first visit — click **Advanced → Proceed to localhost** to continue. This is expected for local or LAN use. To get a trusted certificate with no browser warning, see [Let's Encrypt HTTPS](#lets-encrypt-https-optional) below.
+
 ### Docker Compose
 
 ```yaml
@@ -65,10 +67,55 @@ services:
       - ./config:/config
     ports:
       - 3000:3000   # Selkies web UI (HTTP)
-      - 3001:3001   # Selkies web UI (HTTPS, recommended)
+      - 3001:3001   # Selkies web UI (HTTPS, self-signed cert)
     shm_size: "1gb"
     restart: unless-stopped
 ```
+
+---
+
+## Let's Encrypt HTTPS (Optional)
+
+For public deployments with a real domain, the image can automatically obtain and renew a trusted Let's Encrypt certificate. The certificate is installed into the nginx SSL paths inside the container, so the built-in HTTPS on port 3001 serves a trusted cert with no browser warning.
+
+**Requirements:**
+- A public domain name pointing to the host machine
+- Port 80 reachable from the internet (for the ACME HTTP-01 challenge)
+- Port 443 not already in use on the host (e.g. stop any existing reverse proxy on that port)
+
+**Usage:**
+
+```bash
+docker run -d \
+  --name=antigravity \
+  -e PUID=1000 \
+  -e PGID=1000 \
+  -e TZ=UTC \
+  -e CUSTOM_USER=your-username \
+  -e PASSWORD=your-password \
+  -e DOMAIN=antigravity.example.com \
+  -e LETSENCRYPT_EMAIL=you@example.com \
+  -p 80:80 \
+  -p 443:3001 \
+  -v ./config:/config \
+  --shm-size="1gb" \
+  --sysctl net.ipv6.conf.all.disable_ipv6=1 \
+  --restart unless-stopped \
+  docker-antigravity:latest
+```
+
+Then open **https://antigravity.example.com** in your browser — no security warning.
+
+**How it works:**
+1. On first start, certbot obtains a certificate via HTTP-01 challenge (standalone mode, port 80).
+2. The certificate is written to `/config/ssl/cert.pem` and `/config/ssl/cert.key` — the paths nginx reads for TLS on port 3001.
+3. nginx serves the Let's Encrypt certificate on port 3001, mapped to host port 443.
+4. A weekly cron job (Monday 03:00) renews the certificate automatically and reloads nginx — no downtime or restart needed.
+5. The certificate is persisted in `/config/ssl/` across container restarts.
+
+> **Note:** `--sysctl net.ipv6.conf.all.disable_ipv6=1` is required so certbot binds to IPv4 (port 80) correctly for the HTTP-01 challenge. Without it, certbot may only bind IPv6 and the CA validation will fail with "Connection refused".
+
+If `DOMAIN` or `LETSENCRYPT_EMAIL` is not set, the container falls back to the built-in self-signed certificate on port 3001 (see browser warning note in Quick Start).
 
 ---
 
@@ -81,6 +128,8 @@ services:
 | `TZ` | `UTC` | Timezone (e.g. `Asia/Shanghai`) |
 | `CUSTOM_USER` | — | HTTP Basic Auth username for the web UI |
 | `PASSWORD` | — | HTTP Basic Auth password for the web UI |
+| `DOMAIN` | — | Public domain name for Let's Encrypt certificate |
+| `LETSENCRYPT_EMAIL` | — | Email address for Let's Encrypt registration |
 
 Full list of inherited variables: [linuxserver/chrome docs](https://docs.linuxserver.io/images/docker-chrome)
 
@@ -96,12 +145,13 @@ Full list of inherited variables: [linuxserver/chrome docs](https://docs.linuxse
 
 ## How it Works
 
-1. Builds on [`linuxserver/chrome`](https://docs.linuxserver.io/images/docker-chrome), which provides a lightweight Openbox desktop streamed via [Selkies-GStreamer](https://github.com/selkies-project/selkies-gstreamer) (WebRTC).
+1. Builds on [`linuxserver/chrome`](https://docs.linuxserver.io/images/docker-chrome), which provides a lightweight Openbox desktop streamed via [Selkies-GStreamer](https://github.com/selkies-project/selkies-gstreamer) (WebRTC). An nginx reverse proxy inside the container handles HTTPS on port 3001.
 2. Installs Antigravity from Google Artifact Registry's official Debian repository.
 3. Wraps `google-chrome-stable` to always pass `--no-sandbox` (required inside Docker).
 4. Creates `wrapped-antigravity` — a launcher that cleans up stale lock files and passes required flags.
 5. Replaces the default autostart so Antigravity launches automatically on container start.
 6. A `custom-cont-init.d` script handles first-run setup: `argv.json`, Openbox menu entry, and autostart migration.
+7. If `DOMAIN` and `LETSENCRYPT_EMAIL` are set, a second init script obtains a Let's Encrypt certificate via certbot and writes it to `/config/ssl/cert.pem` and `cert.key` — the paths nginx uses for TLS on port 3001. Mapping host port 443 to container port 3001 exposes standard HTTPS. A weekly cron job handles automatic renewal with nginx reload (no downtime).
 
 ---
 
