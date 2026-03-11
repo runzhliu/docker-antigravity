@@ -18,10 +18,12 @@
 
 ## 本地构建
 
+> **注意：** `linuxserver/chrome:latest` 仅发布了 `linux/amd64` 镜像。Dockerfile 已通过 `--platform=linux/amd64` 固定平台，在 ARM 宿主机（如 Apple Silicon）上会通过 QEMU 仿真构建。建议开启 [BuildKit](https://docs.docker.com/build/buildkit/) 以获得更快、更稳定的构建体验。
+
 ```bash
 git clone https://github.com/runzhliu/docker-antigravity.git
 cd docker-antigravity
-docker build -t docker-antigravity:latest .
+DOCKER_BUILDKIT=1 docker build -t docker-antigravity:latest .
 ```
 
 ---
@@ -100,16 +102,6 @@ services:
 4. 创建 `wrapped-antigravity` 启动器，负责清理残留锁文件并传入必要启动参数。
 5. 将默认 autostart 替换为 `wrapped-antigravity`，容器启动时自动拉起应用。
 6. `custom-cont-init.d` 脚本处理首次运行配置：写入 `argv.json`、添加 Openbox 菜单项、迁移旧的 autostart。
-
----
-
-## 本地构建
-
-```bash
-git clone https://github.com/runzhliu/docker-antigravity.git
-cd docker-antigravity
-docker build -t docker-antigravity .
-```
 
 ---
 

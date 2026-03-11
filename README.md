@@ -18,10 +18,12 @@ Run [Antigravity](https://antigravity.app) in a Docker container with a browser-
 
 ## Building Locally
 
+> **Note:** `linuxserver/chrome:latest` only publishes a `linux/amd64` image. The Dockerfile pins `--platform=linux/amd64` so builds work on ARM hosts (e.g. Apple Silicon) via QEMU emulation. [BuildKit](https://docs.docker.com/build/buildkit/) is recommended for faster, more reliable builds.
+
 ```bash
 git clone https://github.com/runzhliu/docker-antigravity.git
 cd docker-antigravity
-docker build -t docker-antigravity:latest .
+DOCKER_BUILDKIT=1 docker build -t docker-antigravity:latest .
 ```
 
 ---
@@ -100,16 +102,6 @@ Full list of inherited variables: [linuxserver/chrome docs](https://docs.linuxse
 4. Creates `wrapped-antigravity` — a launcher that cleans up stale lock files and passes required flags.
 5. Replaces the default autostart so Antigravity launches automatically on container start.
 6. A `custom-cont-init.d` script handles first-run setup: `argv.json`, Openbox menu entry, and autostart migration.
-
----
-
-## Building Locally
-
-```bash
-git clone https://github.com/runzhliu/docker-antigravity.git
-cd docker-antigravity
-docker build -t docker-antigravity .
-```
 
 ---
 
